@@ -1,26 +1,476 @@
 @import "tailwindcss";
 
+/* Class-based dark mode (.dark on <html>) — Archie ships a separate dark.css,
+   we fold those overrides into the .dark scope below. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================
+   Design tokens — Archie theme palette (athul/archie)
+   Light: crimson accent + rebeccapurple rules
+   Dark:  dracula-green accent + blue rules
+   ============================================================ */
 :root {
+  --primary: #dc143c;
+  --primary-hover: #b91c3c;
+  --rule: #663399;
+  --callout: #1e90ff;
+  --foreground: #232333;
+  --muted: #737373;
+  --meta: #999999;
   --background: #ffffff;
-  --foreground: #171717;
+  --code-bg: #f1f1f1;
+  --pre-bg: #ececec;
+  --ui-border: #e5e5e5;
+  --card: #f6f6f6;
+  --card-hover: #efefef;
+  --on-accent: #ffffff;
+  --link-hover-bg: #b91c3c;
+  --link-hover-fg: #ffffff;
+
+  --content-max-width: 800px;
+  --line-height-content: 1.5;
+}
+
+.dark {
+  --primary: #50fa7b;
+  --primary-hover: #3dd458;
+  --rule: #0066ff;
+  --callout: #1e90ff;
+  --foreground: #ffffff;
+  --muted: #dddddd;
+  --meta: #b3b3b3;
+  --background: #202124;
+  --code-bg: #3a3a3a;
+  --pre-bg: #272822;
+  --ui-border: #34363a;
+  --card: #2a2b2e;
+  --card-hover: #303134;
+  --on-accent: #000000;
+  --link-hover-bg: #50fa7b;
+  --link-hover-fg: #000000;
 }
 
 @theme inline {
-  --color-background: var(--background);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-rule: var(--rule);
+  --color-callout: var(--callout);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-meta: var(--meta);
+  --color-background: var(--background);
+  --color-code-bg: var(--code-bg);
+  --color-pre-bg: var(--pre-bg);
+  --color-border: var(--ui-border);
+  --color-card: var(--card);
+  --color-card-hover: var(--card-hover);
+  --color-on-accent: var(--on-accent);
+
+  /* aliases so existing admin utilities (bg-accent, text-accent…) recolor */
+  --color-accent: var(--primary);
+  --color-accent-hover: var(--primary-hover);
+
+  --font-mono: var(--font-roboto-mono), "Courier New", monospace;
+  --font-sans: var(--font-fira-sans), -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ============================================================
+   Base
+   ============================================================ */
+html {
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--on-accent);
+}
+
+/* ============================================================
+   Site column (.content wraps header + main + footer)
+   ============================================================ */
+.content {
+  margin-inline: auto;
+  margin-bottom: 4em;
+  max-width: var(--content-max-width);
+  padding-inline: 1ch;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 37.4em) {
+  .content {
+    padding-inline: 0.5rem;
+  }
+}
+
+/* ---------- Masthead ---------- */
+.content > header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-block: 1em;
+  line-height: 2.5em;
+  gap: 1rem;
+}
+
+.content header .main {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.content nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 37.4em) {
+  .content > header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* ---------- Links: the Archie signature (scoped to site column) ---------- */
+.content a {
+  border-bottom: 3px solid var(--primary);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.content a:hover,
+.content a:focus {
+  background-color: var(--link-hover-bg);
+  color: var(--link-hover-fg);
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Links that shouldn't carry the underline / fill */
+.content a.plain,
+.content a.soc {
+  border-bottom: none;
+}
+
+.content a.soc {
+  display: inline-flex;
+  align-items: center;
+}
+
+.content a.soc:hover,
+.content a.soc:focus {
+  background-color: transparent;
+  color: var(--primary);
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Theme toggle ---------- */
+.nav-toggle {
+  appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: var(--foreground);
+  padding: 0.5rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.nav-toggle:hover,
+.nav-toggle:focus {
+  background-color: var(--primary);
+  color: var(--on-accent);
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.nav-toggle:active {
+  transform: scale(0.95);
+}
+
+.feather {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* ---------- Meta / time ---------- */
+.meta {
+  color: var(--meta);
+  letter-spacing: -0.5px;
+  font-size: 0.9em;
+}
+
+time {
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+/* ---------- Markdown-style heading prefixes ---------- */
+.hash-1::before { content: "# "; color: var(--primary); }
+.hash-2::before { content: "## "; color: var(--primary); }
+.hash-3::before { content: "### "; color: var(--primary); }
+
+/* ---------- Homepage / list items ---------- */
+.list-item {
+  margin-block: 1.6em 0;
+}
+
+.list-item .title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.list-item .description {
+  margin-block: 0.4em;
+}
+
+.readmore {
+  font-size: 0.9em;
+}
+
+/* ---------- Archive list (ul.posts) ---------- */
+.posts {
+  list-style: none;
+  padding: 0;
+}
+
+.posts li {
+  margin-block: 0.4em;
+}
+
+.posts li::before {
+  content: "* ";
+  font-weight: bold;
+  color: var(--primary);
+}
+
+/* ---------- Tags ---------- */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+}
+
+.tags li::before {
+  content: "🏷 ";
+}
+
+.content .tags a {
+  border-bottom: 3px solid var(--primary);
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+}
+
+.content .tags a:hover,
+.content .tags a:focus {
+  color: var(--link-hover-fg);
+  background-color: var(--link-hover-bg);
+  outline: none;
+}
+
+/* ---------- Section heading on the site ---------- */
+.section-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-block: 1.8em 0.6em;
+}
+
+/* ---------- Footer ---------- */
+.content footer {
+  display: flex;
+  align-items: center;
+  border-block-start: 0.4rem dotted var(--rule);
+  padding-block: 2rem;
+  margin-block-start: 2rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.footer-info {
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+.divider {
+  margin-inline: 0.4rem;
+  border-left: 1px solid var(--rule);
+  align-self: stretch;
+}
+
+/* ============================================================
+   Prose — rendered post / about body (Fira Sans paragraphs)
+   ============================================================ */
+.content p {
+  font-family: var(--font-sans);
+  line-height: var(--line-height-content);
+}
+
+.prose {
+  font-size: 1rem;
+}
+
+.prose > * + * {
+  margin-top: 0.9em;
+}
+
+.prose p {
+  font-family: var(--font-sans);
+  line-height: var(--line-height-content);
+  margin-block: 0.5em;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1.2;
+  margin-block: 1.6em 0.5em;
+}
+
+.prose h1::before { content: "# "; color: var(--primary); }
+.prose h2::before { content: "## "; color: var(--primary); }
+.prose h3::before { content: "### "; color: var(--primary); }
+.prose h4::before { content: "#### "; color: var(--primary); }
+
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4,
+.dark .prose h5,
+.dark .prose h6 {
+  color: var(--muted);
+}
+
+.prose ul {
+  list-style: none;
+  padding-inline-start: 2ch;
+}
+
+.prose ul li {
+  text-indent: -2ch;
+  margin-block: 0.25em;
+}
+
+.prose ul > li::before {
+  content: "* ";
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.prose ol {
+  list-style: decimal;
+  padding-inline-start: 2.2ch;
+}
+
+.prose ol li {
+  margin-block: 0.25em;
+}
+
+.prose blockquote {
+  border-inline-start: 3px solid var(--rule);
+  padding-inline-start: 1em;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.prose hr {
+  border: 0;
+  border-block-start: 3px dotted var(--rule);
+  margin-block: 1em;
+}
+
+.prose img {
+  border: 3px solid var(--pre-bg);
+  border-radius: 5px;
+  max-width: 100%;
+  height: auto;
+}
+
+.prose code {
+  background-color: var(--code-bg);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+.prose pre {
+  background-color: var(--pre-bg);
+  line-height: 1.4;
+  overflow-x: auto;
+  padding: 1em;
+  border-radius: 5px;
+  border: 1px solid var(--rule);
+}
+
+.prose pre code {
+  background-color: transparent;
+  color: inherit;
+  font-size: 100%;
+  padding: 0;
+}
+
+.prose table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-block: 1rem;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.prose th,
+.prose td {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--rule);
+  text-align: start;
+}
+
+.prose th {
+  background-color: var(--pre-bg);
+  font-weight: bold;
+}
+
+.prose tr:nth-child(even) {
+  background-color: var(--code-bg);
 }
