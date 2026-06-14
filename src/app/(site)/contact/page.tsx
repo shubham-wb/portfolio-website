@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SocialIcon } from "@/components/icons";
-import { getSocialLinks } from "@/lib/data";
+import { getContact, getSettings, getSocialLinks } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -9,16 +9,24 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactPage() {
-  const links = await getSocialLinks();
+  const [contact, links, settings] = await Promise.all([
+    getContact(),
+    getSocialLinks(),
+    getSettings(),
+  ]);
 
   return (
     <>
       <h1 className="hash-1" style={{ fontSize: "1.2rem", fontWeight: "bold" }}>
-        Contact
+        {contact.heading || "Contact"}
       </h1>
-      <div className="site-description">
-        <p>The best ways to reach me. I read everything, eventually.</p>
-      </div>
+      {contact.body && (
+        <div
+          className="prose"
+          dangerouslySetInnerHTML={{ __html: contact.body }}
+          style={{ marginBlock: "0.5em 1em" }}
+        />
+      )}
 
       <ul className="posts">
         {links.map((link) => {
@@ -46,6 +54,14 @@ export default async function ContactPage() {
           );
         })}
       </ul>
+
+      {settings.resumeUrl && (
+        <p style={{ marginTop: "1.5em" }}>
+          <a href={settings.resumeUrl} target="_blank" rel="noopener noreferrer">
+            Download résumé ↓
+          </a>
+        </p>
+      )}
     </>
   );
 }

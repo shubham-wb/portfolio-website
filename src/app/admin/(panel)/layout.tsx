@@ -1,22 +1,18 @@
 import type { Metadata } from "next";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminShell } from "@/components/admin/AdminShell";
 
 export const metadata: Metadata = {
   title: "Admin",
   robots: { index: false, follow: false },
 };
 
+// Admin reads live Firestore data per request.
+export const dynamic = "force-dynamic";
+
 export default function AdminPanelLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      <AdminSidebar />
-      <div className="flex-1 overflow-x-hidden">
-        <div className="mx-auto max-w-4xl px-5 py-8 sm:px-8">{children}</div>
-      </div>
-    </div>
-  );
+  return <AdminShell>{children}</AdminShell>;
 }

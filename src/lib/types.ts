@@ -24,13 +24,20 @@ export interface Post {
 
 export interface Project {
   id: string;
+  /** URL slug for the project detail page. */
+  slug: string;
   title: string;
+  /** Short meta description shown on the project card. */
   description: string;
+  /** Full HTML body for the detail page (what it solves, screenshots, etc.). */
+  content?: string;
   /** Tech / topic tags. */
   tags: string[];
   /** Primary link (repo or live site). */
   url?: string;
   repoUrl?: string;
+  /** Cover/preview image URL (uploaded to Cloudinary). */
+  image?: string;
   /** Ordering weight (lower shows first). */
   order: number;
   featured?: boolean;
@@ -54,6 +61,16 @@ export interface SocialLink {
   order: number;
 }
 
+export interface Skill {
+  id: string;
+  name: string;
+  /** Logo image URL (uploaded to Firebase Storage). */
+  logo?: string;
+  /** Short one-liner about the skill / proficiency. */
+  summary: string;
+  order: number;
+}
+
 export interface About {
   /** Headline shown on the about page. */
   heading: string;
@@ -63,8 +80,16 @@ export interface About {
   avatar?: string;
 }
 
+export interface Contact {
+  heading: string;
+  /** Intro blurb shown above the contact links. */
+  body: string;
+}
+
 export interface SiteSettings {
   name: string;
   tagline: string;
   description: string;
+  /** Résumé file URL (uploaded to Firebase Storage). */
+  resumeUrl?: string;
 }

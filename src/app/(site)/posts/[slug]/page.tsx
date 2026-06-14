@@ -2,13 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TagList } from "@/components/Tag";
-import { getPost, getPosts } from "@/lib/data";
+import { Cover } from "@/components/Cover";
+import { getPost } from "@/lib/data";
 import { formatDate } from "@/lib/format";
-
-export async function generateStaticParams() {
-  const posts = await getPosts();
-  return posts.map((p) => ({ slug: p.slug }));
-}
 
 export async function generateMetadata({
   params,
@@ -39,6 +35,17 @@ export default async function PostPage({
         <div className="meta">
           Posted on {formatDate(post.date)} · {post.readingTime} min read
         </div>
+      </div>
+
+      <div style={{ marginTop: "1.2em" }}>
+        <Cover
+          src={post.coverImage}
+          seed={post.slug}
+          kind="post"
+          alt={post.title}
+          sizes="(max-width: 800px) 100vw, 800px"
+          priority
+        />
       </div>
 
       <section

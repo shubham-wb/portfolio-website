@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge, Button, Card } from "@/components/admin/ui";
-import { EditIcon, PlusIcon, TrashIcon, EyeIcon } from "@/components/icons";
+import { DeleteButton } from "@/components/admin/DeleteButton";
+import { EditIcon, PlusIcon, EyeIcon } from "@/components/icons";
 import { getPosts } from "@/lib/data";
 import { formatDate } from "@/lib/format";
 
@@ -60,12 +61,7 @@ export default async function AdminPostsPage() {
               >
                 <EditIcon className="h-4 w-4" />
               </Link>
-              <button
-                className="grid h-8 w-8 place-items-center rounded-md text-muted transition-colors hover:bg-red-500/10 hover:text-red-500"
-                aria-label="Delete post"
-              >
-                <TrashIcon className="h-4 w-4" />
-              </button>
+              <DeleteButton id={post.id} kind="post" label={post.title} />
             </div>
           </div>
         ))}

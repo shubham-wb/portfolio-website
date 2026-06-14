@@ -1,16 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { adminNav } from "@/lib/site";
 import { AdminNavIcon, EyeIcon, LogOutIcon } from "@/components/icons";
+import { signOutUser } from "@/lib/firebase/auth";
+import { useAuth } from "./AuthProvider";
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useAuth();
 
   function isActive(href: string) {
     if (href === "/admin") return pathname === "/admin";
     return pathname.startsWith(href);
+  }
+
+  async function handleSignOut() {
+    await signOutUser();
+    router.replace("/admin/login");
   }
 
   return (
@@ -19,9 +28,11 @@ export function AdminSidebar() {
         <span className="grid h-8 w-8 place-items-center rounded-md bg-accent text-sm font-bold text-on-accent">
           S
         </span>
-        <div className="leading-tight">
+        <div className="min-w-0 leading-tight">
           <p className="text-sm font-semibold">Admin</p>
-          <p className="text-xs text-muted">Content studio</p>
+          <p className="truncate text-xs text-muted">
+            {user?.email ?? "Content studio"}
+          </p>
         </div>
       </div>
 
@@ -51,13 +62,13 @@ export function AdminSidebar() {
           <EyeIcon className="h-4 w-4" />
           View site
         </Link>
-        <Link
-          href="/admin/login"
-          className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-muted transition-colors hover:bg-card-hover hover:text-foreground"
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-muted transition-colors hover:bg-card-hover hover:text-foreground"
         >
           <LogOutIcon className="h-4 w-4" />
           Sign out
-        </Link>
+        </button>
       </div>
     </aside>
   );

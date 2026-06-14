@@ -1,9 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import type { About, SiteSettings, SocialLink, SocialPlatform } from "@/lib/types";
+import type {
+  About,
+  Contact,
+  SiteSettings,
+  SocialLink,
+  SocialPlatform,
+} from "@/lib/types";
 import { Button, Card, Field, TextInput, TextArea } from "./ui";
+import { RichTextEditor } from "./RichTextEditor";
 import { SocialIcon, PlusIcon, TrashIcon } from "@/components/icons";
+import { uploadFile } from "@/lib/upload";
+import {
+  saveAbout,
+  saveContact,
+  saveSettings,
+  saveSocialLinks,
+} from "@/lib/admin/db";
 
 const PLATFORMS: SocialPlatform[] = [
   "github",
@@ -19,26 +33,31 @@ const PLATFORMS: SocialPlatform[] = [
 export function SettingsForm({
   settings,
   about,
+  contact,
   socials,
 }: {
   settings: SiteSettings;
   about: About;
+  contact: Contact;
   socials: SocialLink[];
 }) {
   const [site, setSite] = useState(settings);
   const [aboutState, setAboutState] = useState(about);
+  const [contactState, setContactState] = useState(contact);
   const [links, setLinks] = useState(socials);
+  const [busy, setBusy] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [uploadingResume, setUploadingResume] = useState(false);
 
   function updateLink(id: string, patch: Partial<SocialLink>) {
     setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, ...patch } : l)));
   }
-
   function addLink() {
     setLinks((prev) => [
       ...prev,
       {
-        id: `tmp-${prev.length + 1}`,
+        id: `tmp-${Date.now()}`,
         platform: "website",
         label: "",
         url: "",
@@ -46,16 +65,39 @@ export function SettingsForm({
       },
     ]);
   }
-
   function removeLink(id: string) {
     setLinks((prev) => prev.filter((l) => l.id !== id));
   }
 
-  function handleSave() {
-    // Firebase writes go here in the next pass.
-    // eslint-disable-next-line no-console
-    console.log("Save settings (mock):", { site, about: aboutState, links });
-    setSavedAt(new Date().toLocaleTimeString());
+  async function handleResume(file: File) {
+    setUploadingResume(true);
+    setError(null);
+    try {
+      const url = await uploadFile(`resume/${Date.now()}-${file.name}`, file);
+      setSite((s) => ({ ...s, resumeUrl: url }));
+    } catch {
+      setError("Résumé upload failed.");
+    } finally {
+      setUploadingResume(false);
+    }
+  }
+
+  async function handleSave() {
+    setBusy(true);
+    setError(null);
+    try {
+      await Promise.all([
+        saveSettings(site),
+        saveAbout(aboutState),
+        saveContact(contactState),
+        saveSocialLinks(links.map((l, i) => ({ ...l, order: i + 1 }))),
+      ]);
+      setSavedAt(new Date().toLocaleTimeString());
+    } catch {
+      setError("Could not save. Check your connection and Firestore rules.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -64,16 +106,22 @@ export function SettingsForm({
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
           <p className="mt-1 text-sm text-muted">
-            Site identity, about page, and social links.
+            Site identity, résumé, about, contact, and social links.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {savedAt && (
-            <span className="text-xs text-muted">Saved {savedAt} (mock)</span>
-          )}
-          <Button onClick={handleSave}>Save changes</Button>
+          {savedAt && <span className="text-xs text-muted">Saved {savedAt}</span>}
+          <Button onClick={handleSave} disabled={busy}>
+            {busy ? "Saving…" : "Save changes"}
+          </Button>
         </div>
       </div>
+
+      {error && (
+        <p className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-500">
+          {error}
+        </p>
+      )}
 
       <div className="space-y-6">
         {/* Site identity */}
@@ -82,26 +130,51 @@ export function SettingsForm({
             Site identity
           </h2>
           <Field label="Name">
-            <TextInput
-              value={site.name}
-              onChange={(e) => setSite({ ...site, name: e.target.value })}
-            />
+            <TextInput value={site.name} onChange={(e) => setSite({ ...site, name: e.target.value })} />
           </Field>
           <Field label="Tagline">
-            <TextInput
-              value={site.tagline}
-              onChange={(e) => setSite({ ...site, tagline: e.target.value })}
-            />
+            <TextInput value={site.tagline} onChange={(e) => setSite({ ...site, tagline: e.target.value })} />
           </Field>
           <Field label="Description" hint="Shown on the homepage and in metadata.">
             <TextArea
               rows={2}
               value={site.description}
-              onChange={(e) =>
-                setSite({ ...site, description: e.target.value })
-              }
+              onChange={(e) => setSite({ ...site, description: e.target.value })}
             />
           </Field>
+        </Card>
+
+        {/* Résumé */}
+        <Card className="space-y-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
+            Résumé
+          </h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border bg-card px-3.5 py-2 text-sm font-medium transition-colors hover:bg-card-hover">
+              {uploadingResume ? "Uploading…" : "Upload PDF"}
+              <input
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleResume(f);
+                }}
+              />
+            </label>
+            {site.resumeUrl ? (
+              <a
+                href={site.resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-accent underline"
+              >
+                Current résumé ↗
+              </a>
+            ) : (
+              <span className="text-sm text-muted">No résumé uploaded yet.</span>
+            )}
+          </div>
         </Card>
 
         {/* About */}
@@ -113,30 +186,50 @@ export function SettingsForm({
             <Field label="Heading">
               <TextInput
                 value={aboutState.heading}
-                onChange={(e) =>
-                  setAboutState({ ...aboutState, heading: e.target.value })
-                }
+                onChange={(e) => setAboutState({ ...aboutState, heading: e.target.value })}
               />
             </Field>
             <Field label="Location">
               <TextInput
                 value={aboutState.location ?? ""}
-                onChange={(e) =>
-                  setAboutState({ ...aboutState, location: e.target.value })
-                }
+                onChange={(e) => setAboutState({ ...aboutState, location: e.target.value })}
               />
             </Field>
           </div>
-          <Field label="Body" hint="HTML. Will use the TipTap editor later.">
-            <TextArea
-              rows={6}
-              value={aboutState.body}
-              onChange={(e) =>
-                setAboutState({ ...aboutState, body: e.target.value })
-              }
-              className="font-mono text-xs"
+          <div>
+            <span className="mb-1.5 block text-sm font-medium">Body</span>
+            <RichTextEditor
+              value={about.body}
+              onChange={(html) => setAboutState((s) => ({ ...s, body: html }))}
+              uploadFolder="about"
+              onError={setError}
+              placeholder="Tell your story…"
+            />
+          </div>
+        </Card>
+
+        {/* Contact */}
+        <Card className="space-y-5">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted">
+            Contact page
+          </h2>
+          <Field label="Heading">
+            <TextInput
+              value={contactState.heading}
+              onChange={(e) => setContactState({ ...contactState, heading: e.target.value })}
             />
           </Field>
+          <div>
+            <span className="mb-1.5 block text-sm font-medium">Intro</span>
+            <RichTextEditor
+              value={contact.body}
+              onChange={(html) => setContactState((s) => ({ ...s, body: html }))}
+              uploadFolder="contact"
+              onError={setError}
+              placeholder="Shown above the contact links…"
+              compact
+            />
+          </div>
         </Card>
 
         {/* Social links */}
@@ -163,9 +256,7 @@ export function SettingsForm({
                 <select
                   value={link.platform}
                   onChange={(e) =>
-                    updateLink(link.id, {
-                      platform: e.target.value as SocialPlatform,
-                    })
+                    updateLink(link.id, { platform: e.target.value as SocialPlatform })
                   }
                   className="rounded-md border border-border bg-background px-2 py-2 text-sm capitalize outline-none focus:border-accent"
                 >
@@ -196,6 +287,9 @@ export function SettingsForm({
                 </button>
               </div>
             ))}
+            {links.length === 0 && (
+              <p className="text-sm text-muted">No links yet — add one above.</p>
+            )}
           </div>
         </Card>
       </div>

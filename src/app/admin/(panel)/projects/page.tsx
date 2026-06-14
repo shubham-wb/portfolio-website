@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge, Button, Card } from "@/components/admin/ui";
-import { EditIcon, PlusIcon, TrashIcon } from "@/components/icons";
+import { DeleteButton } from "@/components/admin/DeleteButton";
+import { EditIcon, PlusIcon } from "@/components/icons";
 import { getProjects } from "@/lib/data";
 
 export default async function AdminProjectsPage() {
@@ -49,12 +50,7 @@ export default async function AdminProjectsPage() {
               >
                 <EditIcon className="h-4 w-4" />
               </Link>
-              <button
-                className="grid h-8 w-8 place-items-center rounded-md text-muted transition-colors hover:bg-red-500/10 hover:text-red-500"
-                aria-label="Delete project"
-              >
-                <TrashIcon className="h-4 w-4" />
-              </button>
+              <DeleteButton id={project.id} kind="project" label={project.title} />
             </div>
           </div>
         ))}

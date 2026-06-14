@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PostListItem } from "@/components/PostListItem";
 import { getAllTags, getPosts } from "@/lib/data";
-import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Posts",
@@ -56,14 +56,7 @@ export default async function PostsPage({
       {posts.length === 0 ? (
         <p>No posts found.</p>
       ) : (
-        <ul className="posts">
-          {posts.map((post) => (
-            <li key={post.id}>
-              <Link href={`/posts/${post.slug}`}>{post.title}</Link>{" "}
-              <span className="meta">{formatDate(post.date)}</span>
-            </li>
-          ))}
-        </ul>
+        posts.map((post) => <PostListItem key={post.id} post={post} />)
       )}
     </>
   );

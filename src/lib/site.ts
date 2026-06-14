@@ -25,5 +25,6 @@ export const adminNav: NavItem[] = [
   { label: "Dashboard", href: "/admin" },
   { label: "Posts", href: "/admin/posts" },
   { label: "Projects", href: "/admin/projects" },
+  { label: "Skills", href: "/admin/skills" },
   { label: "Settings", href: "/admin/settings" },
 ];

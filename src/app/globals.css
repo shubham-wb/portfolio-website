@@ -10,21 +10,22 @@
    Dark:  dracula-green accent + blue rules
    ============================================================ */
 :root {
-  --primary: #dc143c;
-  --primary-hover: #b91c3c;
-  --rule: #663399;
-  --callout: #1e90ff;
+  /* Brand trio: violet (primary) · teal (rules) · pink (hover) */
+  --primary: #7c3aed;
+  --primary-hover: #ff2e93;
+  --rule: #14b8a6;
+  --callout: #14b8a6;
   --foreground: #232333;
-  --muted: #737373;
+  --muted: #6b6b78;
   --meta: #999999;
   --background: #ffffff;
-  --code-bg: #f1f1f1;
-  --pre-bg: #ececec;
-  --ui-border: #e5e5e5;
-  --card: #f6f6f6;
-  --card-hover: #efefef;
+  --code-bg: #f3f0fb;
+  --pre-bg: #ece8f7;
+  --ui-border: #e7e3f1;
+  --card: #f7f5fc;
+  --card-hover: #efeaf9;
   --on-accent: #ffffff;
-  --link-hover-bg: #b91c3c;
+  --link-hover-bg: #ff2e93;
   --link-hover-fg: #ffffff;
 
   --content-max-width: 800px;
@@ -32,22 +33,23 @@
 }
 
 .dark {
-  --primary: #50fa7b;
-  --primary-hover: #3dd458;
-  --rule: #0066ff;
-  --callout: #1e90ff;
-  --foreground: #ffffff;
-  --muted: #dddddd;
-  --meta: #b3b3b3;
-  --background: #202124;
-  --code-bg: #3a3a3a;
-  --pre-bg: #272822;
-  --ui-border: #34363a;
-  --card: #2a2b2e;
-  --card-hover: #303134;
-  --on-accent: #000000;
-  --link-hover-bg: #50fa7b;
-  --link-hover-fg: #000000;
+  /* Same trio, lifted for contrast on the dark background */
+  --primary: #a78bfa;
+  --primary-hover: #ff2e93;
+  --rule: #14b8a6;
+  --callout: #2dd4bf;
+  --foreground: #ededf2;
+  --muted: #b6b6c2;
+  --meta: #8a8a96;
+  --background: #1a1a1f;
+  --code-bg: #2a2733;
+  --pre-bg: #242131;
+  --ui-border: #322f3d;
+  --card: #232029;
+  --card-hover: #2c2935;
+  --on-accent: #ffffff;
+  --link-hover-bg: #ff2e93;
+  --link-hover-fg: #ffffff;
 }
 
 @theme inline {
@@ -311,6 +313,100 @@ time {
   font-size: 1.2rem;
   font-weight: bold;
   margin-block: 1.8em 0.6em;
+}
+
+/* ---------- TipTap editor (admin) ---------- */
+.tiptap:focus,
+.ProseMirror:focus {
+  outline: none;
+}
+
+.tiptap p.is-editor-empty:first-child::before,
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+  opacity: 0.6;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ---------- Thumbnails (project image, post cover) ---------- */
+.thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-block: 0.5em;
+}
+
+.thumb img {
+  object-fit: cover;
+}
+
+/* Small logo-style cover used beside titles in listings */
+.cover-logo {
+  position: relative;
+  width: 3.5rem;
+  height: 3.5rem;
+  flex-shrink: 0;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.cover-logo img {
+  object-fit: cover;
+}
+
+/* Listing row: logo beside the heading + meta */
+.list-row {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.list-row .list-body {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- Skills grid ---------- */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin-block: 0.5em;
+}
+
+.skill-card {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  padding: 0.7rem 0.85rem;
+}
+
+.skill-logo {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+.skill-name {
+  font-weight: bold;
+}
+
+.skill-summary {
+  color: var(--muted);
+  font-size: 0.85em;
+  line-height: 1.35;
 }
 
 /* ---------- Footer ---------- */
